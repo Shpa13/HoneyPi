@@ -17,6 +17,6 @@ tls on
 tls_certcheck on
 tls_starttls on
 auth on
-user xUserxcleanx
+user xcleanx
 password [replace with app password - and remove brackets]
 from xUserx
