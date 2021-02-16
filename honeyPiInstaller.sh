@@ -52,21 +52,20 @@ check=1
 case $OPTION in
 	email)
 		emailaddy=$(whiptail --inputbox "Mmmkay. Email is a pain to set up. We have defaults for gmail so use that if you have it. What's your email address?" 20 60 3>&1 1>&2 2>&3)
-        	#msmtp --configure $emailaddy > msmtprc #depreciated
-
-        	sed -i "s/xUserx/$emailaddy/g" msmtprc
-			sed -i "s/xUserxcleanx/${emailaddy%@*}"
-        	#sed -i 's/# -.*/### Just replace XXX with your app password/g' msmtprc
-        	#sed -i 's/#  .*/### and press Ctrl-X to quit and save/g' msmtprc
+			cp msmtprc-temp msmtprc
+        	sed -i "s/xUserx/$emailaddy/g" msmtprc 
+			sed -i "s/xcleanx/${emailaddy%@*}/g" msmtprc
 		check=30
 		#added - for tls auth for gmail servers
-		mkdir ~/.certs
-		echo "Downloading gmail CA..."
+		echo "\nMaking .certs directory\n"
+		sudo mkdir ~/.certs
+		echo "\nDownloading gmail CA...\n"
 		# if CA does not work run: msmtp --serverinfo --host=smtp.gmail.com --tls=on --tls-certcheck=off
 		# this will diplay correct CA name and can be downloaded at https://pki.goog/repository/
-		wget https://pki.goog/repo/certs/gts1o1.der
-		sudo openssl x509 -inform DER -in gts1o1.der -outform PEM -out gmail-smtp.crt
+		wget https://pki.goog/repo/certs/gts1o1.der && sudo openssl x509 -inform DER -in gts1o1.der -outform PEM -out gmail-smtp.crt
+		echo "\nMoving new certs to folder\n"
 		mv gmail-smtp.crt ~/.certs/
+		mv msmtprc /etc/msmtprc
 		# not sure if this is the best place for this cert?
 		whiptail --msgbox "Now, create an 'App Password' for your gmail account (google it if you don't know how). Because we don't want to assign your password to any variables, you have to manually edit the smtp configuration file on the next screen. Save and exit the editor and I'll see you back here." 20 60
 		pico /etc/msmtprc
