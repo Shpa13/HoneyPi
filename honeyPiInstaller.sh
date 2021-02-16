@@ -3,12 +3,12 @@
 #check root
 if [ $UID -ne 0 ]
 then
- echo "Please run this script as root: sudo honeyPI.sh"
+ echo "Please run this script as root: sudo honeyPIinstaller.sh"
  exit 1
 fi
 
 ####Disclaimer!###
-if whiptail --yesno "Hey Hey! You're about to install honeyPi to turn this Raspberry Pi into an IDS/honeypot. Congratulations on being so clever! This install process will change some things on your Pi. Most notably, it will flush your iptables and turn up logging. There is no UNINSTALL script, so think hard about not doing this if you plan to use your Pi for other things. Select 'Yes' if you're cool with all that or 'No' to stop now." 20 60
+if whiptail --yesno "Hey Hey! You're about to install honeyPi it will flush your iptables and turn up logging. There is no UNINSTALL script, so think hard about not doing this if you plan to use your Pi for other things. Select 'Yes' if you're cool with all that or 'No' to stop now." 20 60
 then
   echo "continue"
 else
@@ -52,17 +52,26 @@ check=1
 case $OPTION in
 	email)
 		emailaddy=$(whiptail --inputbox "Mmmkay. Email is a pain to set up. We have defaults for gmail so use that if you have it. What's your email address?" 20 60 3>&1 1>&2 2>&3)
-        	msmtp --configure $emailaddy > msmtprc
-        	echo "account default : $emailaddy" >> msmtprc
-        	sed -i 's/passwordeval.*/password XXX/g' msmtprc
-        	sed -i 's/# -.*/### Just replace XXX with your app password/g' msmtprc
-        	sed -i 's/#  .*/### and press Ctrl-X to quit and save/g' msmtprc
-        	cp msmtprc /etc/
+        	#msmtp --configure $emailaddy > msmtprc #depreciated
+
+        	sed -i "s/xUserx/$emailaddy/g" msmtprc
+			sed -i "s/xUserxcleanx/${emailaddy%@*}"
+        	#sed -i 's/# -.*/### Just replace XXX with your app password/g' msmtprc
+        	#sed -i 's/#  .*/### and press Ctrl-X to quit and save/g' msmtprc
 		check=30
+		#added - for tls auth for gmail servers
+		mkdir ~/.certs
+		echo "Downloading gmail CA..."
+		# if CA does not work run: msmtp --serverinfo --host=smtp.gmail.com --tls=on --tls-certcheck=off
+		# this will diplay correct CA name and can be downloaded at https://pki.goog/repository/
+		wget https://pki.goog/repo/certs/gts1o1.der
+		sudo openssl x509 -inform DER -in gts1o1.der -outform PEM -out gmail-smtp.crt
+		mv gmail-smtp.crt ~/.certs/
+		# not sure if this is the best place for this cert?
 		whiptail --msgbox "Now, create an 'App Password' for your gmail account (google it if you don't know how). Because we don't want to assign your password to any variables, you have to manually edit the smtp configuration file on the next screen. Save and exit the editor and I'll see you back here." 20 60
 		pico /etc/msmtprc
 		whiptail --msgbox "Welcome back! Well Done! Here comes a test message to your email address..." 20 60
-		echo "test message from honeyPi" | msmtp -vvv $emailaddy
+		echo "test message from $sneakyname honeyPi" | msmtp -vvv $emailaddy
 		if whiptail --yesno "Cool. Now wait a couple minutes and see if that test message shows up. 'Yes' to continue or 'No' to exit and mess with your smtp config." 20 60
  		then
   			echo "Continue"
