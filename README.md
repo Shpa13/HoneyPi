@@ -27,3 +27,12 @@ From the Pi, do this:
  5. Follow the prompts.
  
 Please note: Installing this will do some things to your Raspberry Pi. Most notably, it will change your iptables. Please proceed with caution if you are using this Raspberry Pi for other purposes.
+
+
+### Updated install script to work for gmail, you just need to go to https://myaccount.google.com/security and add an "app password" during the install script you'll need to replace
+password [replace with app password - and remove brackets]
+## with(example):
+password kajshdfkjhalksjd 
+
+
+## Cheers!
